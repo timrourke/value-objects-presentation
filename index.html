@@ -1,0 +1,493 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="css/reveal.css">
+        <link rel="stylesheet" href="css/solarized.css">
+        <link rel="stylesheet" href="css/highlight-solarized-dark.css">
+    </head>
+    <body>
+        <div class="reveal">
+            <div class="slides">
+                <section data-background-image="https://images.unsplash.com/photo-1518459951661-02d921b3a9ce?ixlib=rb-0.3.5&s=08788f0009ea3e2c2997c6f0bc89d619&auto=format&fit=crop&w=2852&q=80">
+                    <h1 class="transp_white_90">Value Objects</h1>
+                    <p class="transp_white_75">A brief introduction by Tim Rourke</p>
+                </section>
+                <section data-background-image="https://images.unsplash.com/photo-1505990482843-ba05d52c02c7?ixlib=rb-0.3.5&s=b5f4f739bed481234f4a7d5816512b8d&auto=format&fit=crop&w=1500&q=80">
+                    <h2 class="transp_white_90">What are they?</h2>
+                </section>
+                <section>
+                    <h3>Value Object</h3>
+                    <blockquote>
+                        <p>A <em>value object</em> is a value that only matters as the combination of its attributes.</p>
+                    </blockquote>
+                    <sub><cite>Domain Driven Design - Eric Evans</cite></sub>
+                </section>
+                <section>
+                    <h3>Value Object</h3>
+                    <blockquote>
+                        <p>When you have a true Value Object in your model, [...] it is not a thing in your domain. Instead, it is actually a concept that <em>measures, quantifies,</em> or otherwise <em>describes</em> a thing in your domain.</p>
+                    </blockquote>
+                    <sub><cite>Vernon, Vaughn. "Value Objects." Implementing Domain-Driven Design. New Jersey: Pearson Education, Inc., 2013. 221. Print.</cite></sub>
+                </section>
+                <section>
+                    <h3>Value Objects != Entities</h3>
+                    <p>Sometimes the meaning of a new concept is more clear in contrast with its opposite.</p>
+                </section>
+                <section>
+                    <h3>Entity</h3>
+                    <blockquote>
+                        <p>An <em>entity</em> is something that has a distinct identity that is maintained through time.</p>
+                    </blockquote>
+                    <sub><cite>Domain Driven Design - Eric Evans</cite></sub>
+                </section>
+                <section data-background-position="top center" data-background-image="https://images.unsplash.com/photo-1522383225653-ed111181a951?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=d3e40c27c22e284e7ca26b38022f48be&auto=format&fit=crop&w=2855&q=80">
+                    <h2 class="transp_white_90">You might be a Value&nbsp;Object</h2>
+                    <p class="transp_white_75">Clues and characteristics</p>
+                </section>
+                <section>
+                    <h3>Value Objects</h3>
+                    <ul>
+                        <li>Describes, measures, or quanitifies a thing in your domain</li>
+                        <li>The underlying <em>value</em> is more important than the <em>specific memory address</em></li>
+                        <li>Comparable with other Value Objects (<code>==</code>, <code>&gt;</code>, <code>&lt;</code>)</li>
+                        <li>Immutable!</li>
+                    </ul>
+                </section>
+                <section>
+                    <ul>
+                        <li>Has no side effects</li>
+                        <li>Operations might be transitive in nature <br>
+                            <sub><em>(eg. if <code>a == b</code> and <code>b == c</code> then <code>a == c</code>)</em></li>
+                        <li>Operations might be commutative in nature <br>
+                            <sub><em>(eg. <code>a + b == b + a</code>)</em></sub></li>
+                    </ul>
+                </section>
+                <section>
+                    <h3>...compared to Entities</h3>
+                    <ul>
+                        <li>Represents the "proper nouns" in your domain</li>
+                        <li>It is important to persist the unique state of an instance from operation to operation</li>
+                        <li>Each <em>instance</em> in the system represents a <em>unique</em> identity to the domain</li>
+                        <li>Mutable!</li>
+                    </ul>
+                </section>
+                <section>
+                    <ul>
+                        <li>Changes over the lifetime of the object are important to the domain</li>
+                        <li>The presence of a unique <code>ID</code> attribute</li>
+                        <li>Operations like <code>a + b</code> or <code>a - b < c</code> don't make sense</li>
+                    </ul>
+                </section>
+                <section>
+                    <h3>Entities are composed of Value&nbsp;Objects</h3>
+                    <ul>
+                        <li>An Entity should be constructed from one or many Value Objects</li>
+                        <li>Too few Value Objects probably means your Entities know or do too much</li>
+                        <li>The Value Object itself should enforce constraints about the measure it represents</li>
+                    </ul>
+                </section>
+                <section>
+                    <h3>Clue: Could it become an integer?</h3>
+                    <p>Things that are good candidates for being described as a value object are often things that could be replaced by primitive integers.</p>
+                    <pre><code class="php">
+// This kind of thing is _probably_ rare in practice, but
+// it illustrates the point.
+const COLOR_RED = 892;
+const COLOR_GREEN = 893;
+                    </code></pre>
+                </section>
+                <section data-background-image="https://images.unsplash.com/photo-1525096891900-65f12c04065f?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=838dcb92cd14a2bfa3b5b3607b5b8375&auto=format&fit=crop&w=2850&q=80">
+                    <h2 class="transp_white_90">Examples</h2>
+                    <p class="transp_white_75">Stuff that is Value Object-y</p>
+                </section>
+                <section>
+                    <h3>Dates</h3>
+                    <pre><code class="php">
+$date1 = new DateTimeImmutable('2018-06-25 16:30:00');
+
+$date2 = new DateTimeImmutable('2018-06-25 16:30:00');
+
+/* @var DateInterval $difference */
+$difference = $date1->diff($date2);
+
+echo $difference->format('%d days');
+// "0 days"
+                    </code></pre>
+                </section>
+                <section>
+                    <h3>A bunch of the same</h3>
+                    <p>If you have 1000 instances of a date object for the same moment in time, you could replace every instance with another and the program wouldn't change.</p>
+                </section>
+                <section>
+                    <h3>URIs</h3>
+                    <pre><code class="ruby">
+require 'uri'
+
+uri1 = URI('https://enormous.boathats.biz')
+
+uri2 = URI('https://enormous.boathats.biz')
+
+puts uri1.to_s == uri2.to_s
+# true
+                    </code></pre>
+                </section>
+                <section>
+                    <h3>More of the same</h3>
+                    <p>Yep, same thing here. A URI might indentify a unique location on the internet, but 2 URIs pointing to the same web page are entirely replaceable.</p>
+                </section>
+                <section>
+                    <h3>Email addresses</h3>
+                    <pre><code class="go">
+package main
+
+import (
+    "fmt"
+    "net/mail"
+)
+
+func main() {
+    e, err := mail.ParseAddress("Geraldo &lt;no@cheez.whiz&gt;")
+    if err != nil {
+        fmt.Errorf("invalid email: %v", err)
+    }
+    fmt.Printf("valid email: %s", e.String())
+}
+                    </code></pre>
+                </section>
+                <section>
+                    <h3>Money</h3>
+                    <pre><code class="php">
+class Price {
+    private $amount;
+    private $currency;
+
+    // Note that Currency is also a Value Object!
+    public function __construct(int $amount, Currency $currency) {
+        $this->amount = $amount;
+        $this->currency = $currency;
+    }
+}
+                    </code></pre>
+                    <sub><p>In order to represent the conceptual whole of the idea of a "price", we compose together the <em>amount</em> of money, and the <em>specific currency</em> the money is denominated in.</p></sub>
+                </section>
+                <section data-background-image="https://images.unsplash.com/photo-1529996905518-31613a864401?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=540aaf5e33f95e4dc3a61e70273d01d4&auto=format&fit=crop&w=2850&q=80">
+                    <h2 class="transp_white_90">The Value of Value Objects</h2>
+                </section>
+                <section>
+                    <h3>How do Value Objects help?</h3>
+                    <p>Good code...</p>
+                    <ul>
+                        <li>...communicates its intent</li>
+                        <li>...is composed of abstractions that describe the problem domain</li>
+                        <li>...self-documents proper use by providing user feedback</li>
+                    </ul>
+                </section>
+                <section>
+                    <h3>Value Objects help us communicate intent</h3>
+                    <pre><code class="php">
+// How does the system know this is an email?
+$email = 'someone@example.com';
+$user = new User($email);
+
+try {
+    // This situation is common - we were able to create a
+    // User object and won't find out if it's in a valid
+    // state until we try to save it.
+    $user->save();
+} catch (Exception $e) {
+    http_response_code(422);
+
+    echo $e->getMessage();
+}
+
+// Just an example. In a real project, use an HTTP framework
+// or library, don't do this manually as seen above.
+                    </code></pre>
+                </section>
+                <section>
+                    <pre><code class="php">
+class User {
+    private $email;
+
+    public function __construct(string $email)
+    {
+        // Why does User know about validating an email?
+        // Can we model this more clearly?
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new EmailInvalidException($email);    
+        }
+
+        $this->email = $email;
+    }
+}
+                    </code></pre>
+                </section>
+                <section>
+                    <p>Could an "Email" Value Object help?</p>
+                    <pre><code class="php">
+class Email {
+    private $emailString;
+
+    public function __construct(string $emailString)
+    {
+        if (!filter_var($emailString, FILTER_VALIDATE_EMAIL)) {
+            throw new EmailInvalidException($emailString);    
+        }
+        $this->emailString = $emailString;
+    }
+
+    // ...might include a getter for $emailString as well.
+}
+                    </code></pre>
+                </section>
+                <section>
+                    <pre><code class="php">
+class User {
+    private $email;
+
+    public function __construct(Email $email)
+    {
+        // It is still impossible to create a User with
+        // an invalid email, but email validation is no
+        // longer User's concern.
+        $this->email = $email;
+    }
+}
+                    </code></pre>
+                </section>
+                <section>
+                    <pre><code class="php">
+try {
+    // Email can now throw immediately if passed bad input,
+    // reducing chance our system will get into a bad state.
+    $email = new Email($_POST['email']);
+    $user = new User($email);
+    $user->save();
+} catch (EmailInvalidException $e) {
+    http_response_code(422);
+
+    echo $e->getMessage();
+}
+
+// Just an example. In a real project, use an HTTP framework
+// or library, don't do this manually as seen above.
+                    </code></pre>
+                </section>
+                <section data-background-image="https://images.unsplash.com/photo-1470938330186-da818256fa34?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=b7d25bb2b8bb2d742729be8d99d233a7&auto=format&fit=crop&w=2860&q=80">
+                    <h2 class="transp_white_90">Counter-examples</h2>
+                    <p class="transp_white_75">Some things look like value objects but aren't.</p>
+                </section>
+                <section>
+                    <pre><code class="php">
+// Looks like a value object...
+$link = new Link('https://bighead.dogsocks.net');
+
+// ...but our application's domain disagrees!
+$link->setUser($user);
+$link->save();
+
+// This imaginary application actually has a feature that
+// is about saving your favorite links for later. That
+// means each link has a unique identity!
+echo $link->id;
+                    </code></pre>
+                </section>
+                <section>
+                    <pre><code class="javascript">
+// An HTML input element is the same as any other, right?
+let inputEl = document.querySelector('input');
+
+// Nope! A DOM element might not go in your database, but
+// it is a reference to a unique entity that has its own
+// identity, and exists throughout time (at least as long
+// as the page is up).
+inputEl.style.color = 'red';
+                    </code></pre>
+                </section>
+                <section data-background-image="https://images.unsplash.com/photo-1516702049394-cfad91ca3c6e?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=7ea930b67589a9dae3cf61e4aa16ffb1&auto=format&fit=crop&w=2850&q=80">
+                    <h2 class="transp_white_90">Immutability Police</h2>
+                    <p class="transp_white_75">Don't mess around with my values.</p>
+                </section>
+                <section>
+                    <h3>...never do this:</h3>
+                    <pre><code class="java">
+class Cost {
+    public int amount; // Oh no! public === mutable!
+
+    public Cost(int amount) {
+        this.amount = amount;
+    }
+}
+
+Cost cost1 = new Cost(523);
+Cost cost2 = new Cost(523);
+
+// Your friends will definitely not show up to your party now.
+cost1.amount = 497;
+cost1.equals(cost2); // false?!
+                    </code></pre>
+                </section>
+                <section>
+                    <h3>...this is better:</h3>
+                    <pre><code class="java">
+class Cost {
+    // Lock that shit down
+    private int amount;
+
+    public Cost(int amount) {
+        this.amount = amount;
+    }
+}
+                    </code></pre>
+                </section>
+                <section>
+                    <h3>Bad times: PHP DateTime</h3>
+                    <p>PHP's DateTime is mutable, but we can use a better <em>immutable</em> API now.</p>
+                    <pre><code class="php">
+// This one is mutable (nasty, agghhhhh):
+$lyingPieceOfCrap = new DateTime();
+
+// This one is as noble as a noble thing that is good:
+$steadfastReckoning = new DateTimeImmutable();
+                    </code></pre>
+                </section>
+                <section data-background-image="https://images.unsplash.com/photo-1464465474479-26aa7f69b834?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=0691101641fb25c0dbaa142d96962501&auto=format&fit=crop&w=2847&q=80">
+                    <h2 class="transp_white_90">Equality</h2>
+                    <p class="transp_white_75">Value Objects should be comparable in practice.</p>
+                </section>
+                <section>
+                    <h3>Java</h3>
+                    <p>Java objects have built-in support for the method <code>.equals</code> by default.</p>
+                    <p>Great language feature.</p>
+                    <p>This is very common with value objects:</p>
+                    <pre><code class="java">
+boolean isEqual = valueObj1.equals(valueObj2);
+                    </code></pre>
+                </section>
+                <section>
+                    <h3>...but watch out!</h3>
+                    <p>If you <em>do</em> override <code>.equals</code>, <strong>then be sure to override <code>.hashCode</code>  as well!</strong> You could break data structures that rely on value comparisons and equality (think <code>HashMap</code>, <code>Set</code>, etc.).</p>
+                    <p><cite><a href="https://www.pearson.com/us/higher-education/program/Bloch-Effective-Java-3rd-Edition/PGM1763855.html">Effective Java by Joshua Bloch</a></cite> has great advice for how to deal with these APIs.</p>
+                </section>
+                <section>
+                    <h3>Reference or value?</h3>
+                    <pre><code class="javascript">
+// JavaScript's equality and comparison operators are virtually
+// always comparing reference, or the memory address.
+const p1 = {x: 2, y: 3};
+const p2 = {x: 2, y: 3};
+
+// false, even though the values are the same
+p1 === p2;
+
+const p3 = p2;
+
+// true, but only because p2 and p3 now point to the same address
+// in memory.
+p2 === p3;
+                    </code></pre>
+                    <sub><cite>This example is borrowed from <a href="https://martinfowler.com/bliki/ValueObject.html">Martin Fowler's great article about value objects.</a></cite></sub>
+                </section>
+                <section>
+                    <h3>Roll your own: PHP</h3>
+                    <p>Equality and comparisons are quite common with value objects. You'll know if you need to roll your own.</p>
+                    <pre><code class="php">
+class Email {
+    protected $email;
+
+    public function __construct(string $email)
+    {
+        $this->email = $email; // imagine some validation too...
+    }
+
+    public function equalTo($other): bool
+    {
+        return $other instanceof Email &&
+            $other->email === $this->email;
+    }
+}
+                    </code></pre>
+                </section>
+                <section>
+                    <h3>Roll your own: Ruby</h3>
+                    <p>Ruby is <del>way too</del> really flexible.</p>
+                    <pre><code class="ruby">
+class Rectangle
+    attr_reader :width, :height
+
+    def initialize(width, height)
+        @width = width
+        @height = height
+    end
+
+    def ==(other_object) # You could also do >, <, etc.
+        other_object.instance_of?(Rectangle) &&
+            other_object.width == @width &&
+            other_object.height == @height
+    end
+end
+                    </code></pre>
+                </section>
+                <section data-background-image="https://images.unsplash.com/photo-1527905619174-93ec76f2f133?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=71f9adde2c8e4912221987984b01136f&auto=format&fit=crop&w=2767&q=80">
+                    <h2 class="transp_white_90">Replaceability</h2>
+                    <p class="transp_white_75">Value Objects should be fully replaceable.</p>
+                </section>
+                <section>
+                    <h3>Replaceable &rarr; Immutable</h3>
+                    <pre><code class="javascript">
+// Our Entity should be able to support replacing its
+// Price wholesale
+let item = PurchaseLineItem();
+
+item.setPrice(new Price(437.26, new Currency('USD')));
+// ...other stuff happens...
+item.setPrice(new Price(582.96, new Currency('GBP')));
+                    </code></pre>
+                    <p>If you can <em>replace</em> it without needing to <em>mutate</em> it, you're on the right track.</p>
+                </section>
+                <section data-background-image="https://images.unsplash.com/photo-1532211387405-12202cb81d7b?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=85de7ea26c4600eb4f76fd454580d0c4&auto=format&fit=crop&w=2850&q=80">
+                    <h2 class="transp_white_90">Resources</h2>
+                    <p class="transp_white_75">Where can I learn more about Value Objects?</p>
+                </section>
+                <section>
+                    <h4><a href="https://www.amazon.com/exec/obidos/ASIN/0321125215/domainlanguag-20">Domain-Driven Design by&nbsp;Eric&nbsp;Evans</a></h4>
+                    <p>The seminal work on DDD, this book is a must-have in the library of any developer serious about improving the design of their work. 560 pages of ideas that will change the way you build things forever.</p>
+                </section>
+                <section>
+                    <h4><a href="https://www.amazon.com/Implementing-Domain-Driven-Design-Vaughn-Vernon/dp/0321834577">Implementing Domain-Driven&nbsp;Design by&nbsp;Vaughn&nbsp;Vernon</a></h4>
+                    <p>656 pages. Because the original book just <em>wasn't fucking big enough.</em> As the name suggests, this tome walks through an imaginary implementation driven by DDD principles, showing how these ideas can be applied.</p>
+                </section>
+                <section>
+                    <h4><a href="https://www.amazon.com/Domain-Driven-Design-Distilled-Vaughn-Vernon/dp/0134434420">Domain-Driven&nbsp;Design Distilled by&nbsp;Vaughn&nbsp;Vernon</a></h4>
+                    <p>"Only" 176 pages of dense brilliant richness. I think of this as the <em>"I'm going on vacation and I'm not bringing my laptop how do I keep learning things oh my god."</em> edition.</p>
+                </section>
+                <section>
+                    <h4><a href="https://martinfowler.com/">Martin Fowler</a></h4>
+                    <p>Not a book, just a guy. Well, OK, he writes excellent books too (<a href="https://www.amazon.com/Refactoring-Improving-Existing-Addison-Wesley-Signature/dp/0134757599">Refactoring</a>, and <a href="https://www.amazon.com/Patterns-Enterprise-Application-Architecture-Martin/dp/0321127420">Patterns of Enterprise Application Architecture</a>). Check his site out for some really great articles about design.</p>
+                </section>
+                <section data-background-image="https://images.unsplash.com/photo-1492463104320-56094d69c6c4?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=1fba08c6060927b59894d23dcd87fac4&auto=format&fit=crop&w=2978&q=80">
+                    <h4 class="transp_white_90"><a class="transp_white_90" href="https://unsplash.com">Unsplash.com</a></h4>
+                    <p class="transp_white_75">This site is where I got all my pretty pictures.</p>
+                </section>
+                <section data-background-image="https://images.unsplash.com/photo-1490750967868-88aa4486c946?ixlib=rb-0.3.5&ixid=eyJhcHBfaWQiOjEyMDd9&s=106140ef5cf1847ad7105e6d864ba87f&auto=format&fit=crop&w=2850&q=80">
+                    <h2 class="transp_white_90">Questions?</h2>
+                    <p class="transp_white_75"><a class="transp_white_75" href="https://github.com/timrourke">github.com/timrourke</a></p>
+                </section>
+            </div>
+        </div>
+        <script src="js/reveal.js"></script>
+        <script>
+            Reveal.initialize({
+                fragmentInURL: true,
+                history: true,
+                dependencies: [
+                    // Syntax highlight for <code> elements
+                    {
+                        src: 'js/highlight.js',
+                        async: true,
+                        callback: function() { hljs.initHighlightingOnLoad(); }
+                    },
+                ]
+            });
+        </script>
+    </body>
+</html>
